@@ -41,6 +41,10 @@ const mensagensDeErro = {
     cpf : {
         valueMissing: 'O campo cpf não pode estar vazio.',
         customError: 'O CPF esta repetindo'
+    },
+    cep : {
+        valueMissing : 'O campo de CEP nao pos estar vazio',
+        patternMismatch: 'CEP digitado nao e Valido'
     }
 
 }
@@ -78,7 +82,7 @@ function validaCpf(input){
     const cpfformatado = input.value.replace(/\D/g , '')
     let mensagem = ''
 
-    if (!repetirCpf(cpfformatado)){
+    if (!repetirCpf(cpfformatado) || !checkEsruturaCpf(cpfformatado)){
         mensagem = 'O CPF esta repetindo'
     }
     input.setCustomValidity(mensagem)
@@ -106,5 +110,33 @@ function repetirCpf(cpf){
     })
     return CpfValidado
 }
+function checkEsruturaCpf(cpf){
+    const multiplicador = 10
+    return checaDigitoVerificador(cpf , multiplicador)
+}
+function checaDigitoVerificador(cpf , multiplicador){
+    if(multiplicador >= 12){
+        return true
+    }
+    let multiplicadorInicial = multiplicador
+    let soma = 0
+    const cpfSemdigito = cpf.substr(0 , multiplicador - 1).split('')
+    const digitoVerificador = cpf.charAt(multiplicador - 1)
+    for(let i = 0;multiplicadorInicial > 1; multiplicadorInicial--){
+        soma = soma + cpfSemdigito[i] * multiplicadorInicial
+        contador++
+    }
 
-let soma = ((10 * 1) + (9 * 2) + (8 * 3) + (7 * 4) + (6 * 5) + (5 * 6) + (4 * 7) + (3 * 8) + (2 + 9) ) 
+    if(digitoVerificador == confirmaDigito(soma)){
+        return checaDigitoVerificador(cpf, multiplicador + 1)
+    }
+
+    return false
+}
+function confirmaDigito(soma){
+    return 11 - (soma % 11)
+}
+
+let soma = ((10 * 1) + (9 * 2) + (8 * 3) + (7 * 4) + (6 * 5) + (5 * 6) + (4 * 7) + (3 * 8) + (2 + 9)) 
+
+let digitoVerificador = 11 - (soma % 11)
