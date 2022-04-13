@@ -20,7 +20,7 @@
         </div>
         <section class="cartao">
             <h2 class="cartao__titulo">Complete seu cadastro</h2>
-            <form action="./cadastro_concluido.html" class="formulario flex flex--coluna">
+            <form method="get" action="./cadastro_concluido.html" class="formulario flex flex--coluna">
                 <fieldset>
                     <legend class="formulario__legenda">Informações básicas</legend>
                     <div class="input-container">
@@ -53,32 +53,96 @@
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend class="formulario__legenda">Endereço</legend>
-                    <div class="input-container">
-                        <input name="cep" id="cep" class="input" type="text" placeholder="CEP" data-tipo="cep" required  pattern="[\d]{5}-?[\d]{3}">
-                        <label class="input-label" for="cep">CEP</label>
-                        <span class="input-mensagem-erro">Este campo não está válido</span>
-                    </div>
-                    <div class="input-container">
-                        <input name="logradouro" id="logradouro" class="input" type="text" placeholder="Logradouro">
-                        <label class="input-label" for="logradouro">Logradouro</label>
-                        <span class="input-mensagem-erro">Este campo não está válido</span>
-                    </div>
-                    <div class="input-container">
-                        <input name="cidade" id="cidade" class="input" type="text" placeholder="Cidade">
-                        <label class="input-label" for="cidade">Cidade</label>
-                        <span class="input-mensagem-erro">Este campo não está válido</span>
-                    </div>
-                    <div class="input-container">
-                        <input name="estado" id="estado" class="input" type="text" placeholder="Estado">
-                        <label class="input-label" for="estado">Estado</label>
-                        <span class="input-mensagem-erro">Este campo não está válido</span>
-                    </div>
+                    <label>Cep:
+                        <input name="cep" class="input" type="text" id="cep" required value="" size="10" maxlength="9"
+                               onblur="pesquisacep(this.value);" /></label><br />
+                        <label>Rua:
+                        <input name="rua" type="text" id="rua" size="60" /></label><br />
+                        <label>Bairro:
+                        <input name="bairro" type="text" id="bairro" size="40" /></label><br />
+                        <label>Cidade:
+                        <input name="cidade" type="text" id="cidade" size="40" /></label><br />
+                        <label>Estado:
+                        <input name="uf" type="text" id="uf" size="2" /></label><br />
+                        <label>IBGE:
+                        <input name="ibge" type="text" id="ibge" size="8" /></label><br />
                 </fieldset>
-                <button class="botao">Cadastrar</a>
+                <button class="botao">Cadastrar</a></button>
             </form>
         </section>
     </main>
     <script src="./js/app.js" type="module"></script>
+    <script>
+    
+        function limpa_formulário_cep() {
+                //Limpa valores do formulário de cep.
+                document.getElementById('rua').value=("");
+                document.getElementById('bairro').value=("");
+                document.getElementById('cidade').value=("");
+                document.getElementById('uf').value=("");
+                document.getElementById('ibge').value=("");
+        }
+    
+        function meu_callback(conteudo) {
+            if (!("erro" in conteudo)) {
+                //Atualiza os campos com os valores.
+                document.getElementById('rua').value=(conteudo.logradouro);
+                document.getElementById('bairro').value=(conteudo.bairro);
+                document.getElementById('cidade').value=(conteudo.localidade);
+                document.getElementById('uf').value=(conteudo.uf);
+                document.getElementById('ibge').value=(conteudo.ibge);
+            } //end if.
+            else {
+                //CEP não Encontrado.
+                limpa_formulário_cep();
+                alert("CEP não encontrado.");
+            }
+        }
+            
+        function pesquisacep(valor) {
+    
+            //Nova variável "cep" somente com dígitos.
+            var cep = valor.replace(/\D/g, '');
+    
+            //Verifica se campo cep possui valor informado.
+            if (cep != "") {
+    
+                //Expressão regular para validar o CEP.
+                var validacep = /^[0-9]{8}$/;
+    
+                //Valida o formato do CEP.
+                if(validacep.test(cep)) {
+    
+                    //Preenche os campos com "..." enquanto consulta webservice.
+                    document.getElementById('rua').value="...";
+                    document.getElementById('bairro').value="...";
+                    document.getElementById('cidade').value="...";
+                    document.getElementById('uf').value="...";
+                    document.getElementById('ibge').value="...";
+    
+                    //Cria um elemento javascript.
+                    var script = document.createElement('script');
+    
+                    //Sincroniza com o callback.
+                    script.src = 'https://viacep.com.br/ws/'+ cep + '/json/?callback=meu_callback';
+    
+                    //Insere script no documento e carrega o conteúdo.
+                    document.body.appendChild(script);
+    
+                } //end if.
+                else {
+                    //cep é inválido.
+                    limpa_formulário_cep();
+                    alert("Formato de CEP inválido.");
+                }
+            } //end if.
+            else {
+                //cep sem valor, limpa formulário.
+                limpa_formulário_cep();
+            }
+        };
+    
+        </script>
+    
 </body>
 </html>

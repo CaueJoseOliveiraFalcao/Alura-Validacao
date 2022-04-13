@@ -45,12 +45,22 @@ const mensagensDeErro = {
     cep : {
         valueMissing : 'O campo de CEP nao pos estar vazio',
         patternMismatch: 'CEP digitado nao e Valido'
+    },
+    lougradouro : {
+        valueMissing : 'O campo de Lougradouro nao pos estar vazio'
+    },
+    cidade : {
+        valueMissing : 'O campo de Cidade nao pos estar vazio'
+    },
+    estado : {
+        valueMissing : 'O campo de Estado nao pos estar vazio'
     }
 
 }
 const validadores = {
     dataNascimento:input => validaDataNascimento(input),
-    cpf:input => validaCpf(input)
+    cpf:input => validaCpf(input),
+    cep:input => RecuperarCEP(input)
 }
 function mostraMensagemDeErro(tipoDeInput,input){
     let mensagem = ''
@@ -82,7 +92,7 @@ function validaCpf(input){
     const cpfformatado = input.value.replace(/\D/g , '')
     let mensagem = ''
 
-    if (!repetirCpf(cpfformatado) || !checkEsruturaCpf(cpfformatado)){
+    if (!repetirCpf(cpfformatado)){
         mensagem = 'O CPF esta repetindo'
     }
     input.setCustomValidity(mensagem)
@@ -124,7 +134,7 @@ function checaDigitoVerificador(cpf , multiplicador){
     const digitoVerificador = cpf.charAt(multiplicador - 1)
     for(let i = 0;multiplicadorInicial > 1; multiplicadorInicial--){
         soma = soma + cpfSemdigito[i] * multiplicadorInicial
-        contador++
+        i++
     }
 
     if(digitoVerificador == confirmaDigito(soma)){
@@ -137,6 +147,31 @@ function confirmaDigito(soma){
     return 11 - (soma % 11)
 }
 
-let soma = ((10 * 1) + (9 * 2) + (8 * 3) + (7 * 4) + (6 * 5) + (5 * 6) + (4 * 7) + (3 * 8) + (2 + 9)) 
 
-let digitoVerificador = 11 - (soma % 11)
+function RecuperarCEP(input) {
+    const cep = input.value.replace(/\D/g, '')
+    const url = `http://viacep.com.br/ws/${cep}/json/`
+    const options = {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+            'content-type': 'application/json;charset=utf-8'
+        }
+    }
+
+    if(!input.validity.patternMismatch && !input.validity.valueMissing) {
+        fetch(url,options).then(
+            response => response.json()
+        ).then(
+            data => {
+                if(data.erro) {
+                    input.setCustomValidity('Não foi possível buscar o CEP.')
+                    return
+                }
+                input.setCustomValidity('')
+                preencheCamposComCEP(data)
+                return
+            }
+        )
+    }
+}
